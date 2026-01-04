@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 
 export interface AppSettings {
@@ -11,11 +11,6 @@ type AlertRule = Consecutive;
 type Consecutive = {
   id: string;
   count: number;
-  type: boolean;
-};
-
-type Percentage = {
-  id: string;
   type: boolean;
 };
 
