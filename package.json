@@ -1,7 +1,7 @@
 {
   "name": "counter-app",
   "version": "1.0.0",
-  "description": "シンプルなカウンターアプリ（履歴機能付き）",
+  "description": "",
   "private": true,
   "dependencies": {
     "react": "^18.2.0",
