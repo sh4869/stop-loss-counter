@@ -72,46 +72,6 @@ const Settings = ({ onBack }: SettingsProps) => {
         </div>
 
         <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              カウントステップ
-            </label>
-            <p className="text-sm text-gray-500 mb-3">
-              ボタンを1回押したときに増減する数値
-            </p>
-            <input
-              type="number"
-              min="1"
-              max="100"
-              onChange={(e) =>
-                onSettingsChange(
-                  "stepValue",
-                  JSON.stringify(parseInt(e.target.value) || 1),
-                )
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              履歴保存件数
-            </label>
-            <p className="text-sm text-gray-500 mb-3">保存する履歴の最大件数</p>
-            <input
-              type="number"
-              min="1"
-              max="50"
-              onChange={(e) =>
-                onSettingsChange(
-                  "historyLimit",
-                  JSON.stringify(parseInt(e.target.value) || 5),
-                )
-              }
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
           <div className="border-t pt-6">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -196,9 +156,14 @@ const Settings = ({ onBack }: SettingsProps) => {
   );
 };
 
+type History = {
+  type: "+1" | "-1";
+  timestamp: number;
+};
+
 const App = () => {
   const [count, setCount] = useState<number>(0);
-  const [history, setHistory] = useState<string[]>([]);
+  const [history, setHistory] = useState<History[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [alert, setAlert] = useState<boolean>(false);
   const [consecutiveAlertRule, setConsecutiveAlertRule] = useState<AlertRule[]>(
@@ -238,13 +203,13 @@ const App = () => {
 
   const saveData = async (
     newCount: number,
-    newHistory: string[],
+    newHistory: History[],
   ): Promise<void> => {
     const alerts = consecutiveAlertRule.filter((rule) => {
       return (
         newHistory.length >= rule.count &&
         newHistory.slice(0, rule.count).every((value) => {
-          return rule.type ? value === "+1" : value === "-1";
+          return rule.type ? value.type === "+1" : value.type === "-1";
         })
       );
     });
@@ -264,7 +229,10 @@ const App = () => {
 
   const handleIncrement = (): void => {
     const newCount = count + 1;
-    const newHistory = ["+1", ...history].slice(0, 5);
+    const newHistory: History[] = [
+      { type: "+1" as "+1", timestamp: Date.now() },
+      ...history,
+    ].slice(0, 5);
     setCount(newCount);
     setHistory(newHistory);
     saveData(newCount, newHistory);
@@ -272,7 +240,10 @@ const App = () => {
 
   const handleDecrement = (): void => {
     const newCount = count - 1;
-    const newHistory = ["-1", ...history].slice(0, 5);
+    const newHistory: History[] = [
+      { type: "-1" as "-1", timestamp: Date.now() },
+      ...history,
+    ].slice(0, 5);
     setCount(newCount);
     setHistory(newHistory);
     saveData(newCount, newHistory);
@@ -366,9 +337,7 @@ const App = () => {
       {history.length > 0 && (
         <div className="border-t pt-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-700">
-              履歴（最新件）
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-700">履歴</h2>
             <button
               onClick={handleClear}
               className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm rounded transition-colors"
@@ -384,11 +353,14 @@ const App = () => {
                 className="px-4 py-2rounded text-gray-700 flex items-center"
               >
                 <span className="font-mono text-lg">
-                  {item.startsWith("+") ? (
-                    <span className="text-blue-600">{item}</span>
+                  {item.type === "+1" ? (
+                    <span className="text-blue-600">{item.type}</span>
                   ) : (
-                    <span className="text-red-600">{item}</span>
+                    <span className="text-red-600">{item.type}</span>
                   )}
+                </span>
+                <span className="text-sm text-gray-500 ml-4">
+                  {new Date(item.timestamp).toLocaleString()}
                 </span>
               </li>
             ))}
